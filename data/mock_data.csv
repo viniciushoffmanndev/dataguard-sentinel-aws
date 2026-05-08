@@ -1,0 +1,6 @@
+transaction_id,product_name,sale_value,sale_date
+TXN_001,Advanced Analytics Platform,1500.00,2026-05-15 08:30:00
+TXN_002,Cloud Data Warehouse Connector,750.50,2026-05-15 09:15:00
+TXN_003,Real-time Streaming API,2200.00,2026-05-15 10:00:00
+ERROR_001,AI Model Training Set,MUITO_CARO,2026-05-15 11:00:00
+TXN_004,,500.00,2026-05-15 12:30:00
