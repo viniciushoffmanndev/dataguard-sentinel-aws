@@ -117,6 +117,8 @@ Esta camada demonstra:
 
 # 🔄 Fluxo do DataGuard Sentinel
 
+![Fluxo do DataGuard Sentinel](images/fluxo.png)
+
 A arquitetura representada no quadro branco segue o seguinte fluxo:
 
 1. Os dados nascem no pipeline ETL em Python.
