@@ -1,7 +1,7 @@
 -- Schema para o DataGuard Sentinel
 -- Foco: Rastreabilidade e Integridade de Dados
 
--- Tabela de Ingestão de Vendas (Exemplo de cenário)
+-- 1. Tabela de Ingestão de Vendas
 CREATE TABLE IF NOT EXISTS raw_sales_data (
     id SERIAL PRIMARY KEY,
     transaction_id VARCHAR(50) UNIQUE NOT NULL,
@@ -15,15 +15,18 @@ CREATE TABLE IF NOT EXISTS raw_sales_data (
     status VARCHAR(20) DEFAULT 'pending' -- pending, processed, error
 );
 
--- Tabela de Logs de Incidentes (Para a nossa Lambda Sentinel monitorar)
+-- 2. Tabela de Logs de Incidentes (UNIFICADA)
+-- Esta tabela agora suporta tanto erros de transação quanto erros genéricos de Python
 CREATE TABLE IF NOT EXISTS data_quality_logs (
-    log_id SERIAL PRIMARY KEY,
-    transaction_id VARCHAR(50),
-    error_message TEXT,
-    severity_level VARCHAR(10), -- INFO, WARNING, CRITICAL
-    detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    transaction_id VARCHAR(50),             -- Referência opcional à venda
+    incident_type VARCHAR(50) NOT NULL,    -- ex: 'InvalidValue', 'ParseError'
+    severity VARCHAR(20) NOT NULL,         -- ex: 'HIGH', 'CRITICAL'
+    details TEXT,                          -- A mensagem de erro capturada pelo Python
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Índice para busca rápida em auditorias
-CREATE INDEX idx_sale_date ON raw_sales_data(sale_date);
-CREATE INDEX idx_incident_status ON raw_sales_data(status);
+-- Índices para performance
+CREATE INDEX IF NOT EXISTS idx_sale_date ON raw_sales_data(sale_date);
+CREATE INDEX IF NOT EXISTS idx_incident_status ON raw_sales_data(status);
+CREATE INDEX IF NOT EXISTS idx_incident_type ON data_quality_logs(incident_type);
