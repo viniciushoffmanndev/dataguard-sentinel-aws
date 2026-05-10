@@ -33,7 +33,6 @@ __pycache__/
 # === DADOS (Cuidado com arquivos grandes ou sensíveis) ===
 data/*.csv
 data/*.json
-!data/mock_data.csv  # Opcional: manter o mock se quiser que o recrutador teste
 
 # === SISTEMA E IDE ===
 .vscode/

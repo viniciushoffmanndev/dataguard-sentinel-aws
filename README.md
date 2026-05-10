@@ -126,6 +126,40 @@ A arquitetura representada no quadro branco segue o seguinte fluxo:
 3. Dados válidos são persistidos no PostgreSQL (Amazon RDS).
 4. Em caso de falha, a camada Sentinel registra a causa raiz e auxilia na investigação do incidente.
 
+
+
+
+# Resumo de Execução: DataGuard Sentinel AWS
+
+![Select](images/concluido.png)
+
+Esta imagem representa o sucesso da integração "end-to-end" do projeto, unindo infraestrutura como código, desenvolvimento backend e monitoramento de dados.
+
+## O que a imagem demonstra (Visão Técnica)
+
+1.  **Ingestão e Validação (Terminal):**
+    * O script Python (`etl_script.py`) executou a leitura de um arquivo CSV mockado.
+    * O motor do **Sentinel** identificou uma anomalia na transação `TRX002` (valor inválido detectado).
+    * Utilizando o driver **Psycopg 3**, o script estabeleceu uma conexão segura via SSL com o **AWS RDS** e persistiu o incidente.
+
+2.  **Infraestrutura e Conectividade (SQLTools):**
+    * À esquerda, vemos a interface de consulta conectada ao banco de dados provisionado via **Terraform**.
+    * A conexão está validada e ativa, operando com as políticas de segurança (Security Groups) configuradas corretamente na AWS.
+
+3.  **Persistência e Data Quality (Console de Resultados):**
+    * À direita, o resultado do `SELECT` confirma que o incidente foi gravado com sucesso.
+    * Os metadados incluem o `transaction_id`, o tipo de incidente (**InvalidValue**), a severidade (**HIGH**) e o detalhamento técnico do erro.
+
+## Conclusão do Pipeline
+O ciclo completo foi validado:
+- **Infraestrutura:** Provisionada com Terraform.
+- **Segurança:** Acessos e permissões configurados.
+- **Aplicação:** Lógica de negócio e tratamento de erro em Python.
+- **Banco de Dados:** PostgreSQL (RDS) operando como o repositório central de logs de qualidade.
+
+---
+*Status: Conectado e Operacional na AWS.*
+
 ---
 
 ## ☁️ Tecnologias Utilizadas
