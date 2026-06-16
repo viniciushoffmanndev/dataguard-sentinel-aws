@@ -1,176 +1,106 @@
-# dataguard-sentinel-aws
-Automated Data Observability Pipeline with Incident Auto-Healing on AWS using Python, SQL, and Terraform (DataOps/SRE approach).
+<p align="center">
+  <img src="https://img.shields.io/badge/PYTHON-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/AWS%20LAMBDA-FF9900?style=for-the-badge&logo=awslambda&logoColor=white" />
+  <img src="https://img.shields.io/badge/AMAZON%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white" />
+  <img src="https://img.shields.io/badge/AMAZON%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" />
+  <img src="https://img.shields.io/badge/POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/TERRAFORM-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" />
+</p>
 
-![Mapa Mental Técnico](images/mapa-mental-tecnico.png)
+<h2 align="center">✨ DataGuard Sentinel AWS ✨</h2>
+
+<p align="center">
+  Este projeto representa um pipeline automatizado de observabilidade de dados e autocorreção de incidentes de ponta a ponta, meticulosamente desenvolvido sob uma abordagem rigorosa de DataOps e Site Reliability Engineering (SRE) em ambiente cloud-native. A arquitetura orquestra o provisionamento declarativo de infraestrutura como código (IaC) via Terraform, isolando redes e recursos analíticos na AWS de forma reprodutível e segura. O núcleo da aplicação combina um motor ETL assíncrono em Python com o driver de alta performance Psycopg 3, responsável pela ingestão, sanitização e validação de payloads em tempo real, persistindo dados analíticos em um cluster Amazon RDS PostgreSQL estruturado com índices B-Tree otimizados (incluindo chaves primárias baseadas em UUIDv7 ordenáveis por tempo). Paralelamente, uma camada de inteligência serverless baseada em AWS Lambda atua como o componente Sentinel, monitorando a saúde operacional do fluxo, isolando anomalias transacionais, aplicando políticas de Data Quality e disparando mechanisms automatizados de remediação e auditoria para garantir a máxima confiabilidade do ecossistema de dados.
+</p>
+
+---
+
+## 🔥 Features
+
+- ⚡ **Infraestrutura Declarativa (IaC)**: Ciclo de vida completo de recursos analíticos (VPC, RDS, S3, IAM Roles) automatizado via Terraform.
+- 🧠 **Observabilidade e Data Quality**: Monitoramento proativo de cargas úteis (payloads) para identificação instantânea de anomalias e quebras de schema.
+- 🗄️ **Arquitetura de Alta Performance**: Modelagem relacional avançada no PostgreSQL com otimização de índices e chaves primárias sequenciais cronológicas via UUIDv7.
+- 🚀 **Inteligência Serverless SRE**: Camada resiliente acionada via AWS Lambda para isolamento de incidentes, rastreabilidade e análise de causa raiz.
+- 📡 **Conectividade Secura**: Comunicação criptografada fim a fim com banco de dados em nuvem utilizando conexões seguras via SSL.
+- 📊 **Auditoria e Metadados**: Registro estruturado de anomalias transacionais categorizadas por tipo, severidade e detalhamento técnico para governança corporativa.
+- ⚙️ **Cultura DataOps**: Alinhamento estrito com os padrões modernos de engenharia de confiabilidade de dados e pipelines autoregenerativos.
+
+---
 
 ## 🧠 Mapa Mental Técnico
 
-Esta imagem representa a arquitetura mental e técnica do projeto.  
-Ela conecta as pastas criadas no VS Code com os serviços da AWS e com as responsabilidades esperadas de um Engenheiro de Dados moderno.
+Esta seção consolida a arquitetura técnica e conceitual do projeto, mapeando diretamente os componentes de código do ecossistema às suas respectivas responsabilidades em Nuvem.
+
+<p align="center">
+  <img src="img/mapa-mental-tecnico.png" alt="Mapa Mental Técnico" width="95%" />
+</p>
 
 ---
 
-# 📂 Visão Geral da Estrutura do Projeto
+## 📂 Visão Geral da Estrutura do Projeto
 
-## 1. `infra/` — Esqueleto da Infraestrutura em Nuvem
+### 1. 🟣 `infra/` — Orquestração de Infraestrutura em Nuvem (`Terraform`)
+> 🎨 **Mapeamento de Cor no Diagrama:** `Subgraph com Borda Roxa`
+>
+> Camada responsável por eliminar o provisionamento manual e mitigar o desvio de configuração (*configuration drift*). Através do `main.tf` e `variables.tf`, o ambiente é descrito de forma totalmente declarativa via **Terraform**, assegurando isolamento de rede, políticas estritas de privilégio mínimo (IAM) e persistência escalável.
 
-### `main.tf` e `variables.tf`
+### 2. ⚪ `data/` — Camada de Dados Brutos e Sanitização Prévia
+> 🎨 **Mapeamento de Cor no Diagrama:** `Caixa de Entrada Cinza/Branca`
+>
+> Ponto de entrada dos arquivos de telemetria e transações mockadas (`mock_data.csv`). A validação estrutural nesta fase permite inspecionar delimitações, encoding e integridade posicional dos registros antes do início da computação lógica.
 
-Esta camada utiliza Terraform para provisionar infraestrutura como código (IaC).  
-Em vez de criar recursos manualmente no Console da AWS, toda a infraestrutura é descrita de forma declarativa.
+### 3. 🔵 `src/data_ingestion/` — Motor ETL de Alta Disponibilidade (`Python`)
+> 🎨 **Mapeamento de Cor no Diagrama:** `Bloco Sólido Azul Escuro`
+>
+> Componente core desenvolvido em **Python** para execução das fases de Extração, Transformação e Carga. Utilizando pipelines assíncronos e barramentos de validação de tipos, o script barra corrupções de dados em tempo de execução e garante consistência transacional antes da escrita física no banco de dados.
 
-Exemplos:
-- Amazon RDS
-- Buckets S3
-- Rede/VPC
-- IAM Roles
+### 4. 🟠 `src/sentinel_lambda/` — Engine Serverless de Auto-Healing (`AWS Lambda`)
+> 🎨 **Mapeamento de Cor no Diagrama:** `Bloco Sólido Marrom/Laranja`
+>
+> Função orientada a eventos (`handler.py`) projetada sob princípios SRE e hospedada na **AWS Lambda**. O componente atua na mitigação de falhas do pipeline, capturando exceções de hardware ou software, gerando logs de auditoria detalhados no CloudWatch e orquestrando o fluxo de isolamento do dado corrompido sem interromper o processamento global.
 
-### Por que isso importa?
-
-Demonstra:
-- Infraestrutura como Código (IaC)
-- Reprodutibilidade de ambientes
-- Arquitetura escalável em nuvem
-- Boas práticas de DevOps/DataOps
-
----
-
-## 2. `data/` — Camada de Dados Brutos
-
-### `mock_data.csv`
-
-Contém dados fictícios que simulam informações reais recebidas de clientes.
-
-### Rainbow CSV
-
-A visualização colorida do CSV ajuda a identificar:
-- linhas mal formatadas
-- problemas de encoding
-- colunas ausentes
-- inconsistências de delimitadores
-
-antes mesmo do início da ingestão de dados.
+### 5. 🔵 `src/queries/` — Camada de Governança e Persistência Relacional (`PostgreSQL`)
+> 🎨 **Mapeamento de Cor no Diagrama:** `Cilindro de Banco de Dados Azul`
+>
+> Repositório dos esquemas de dados (`schema.sql`) aplicados no **Amazon RDS PostgreSQL**. Consolida regras rígidas de integridade referencial, constraints de chaves estrangeiras, tratamento de concorrência e estratégias avançadas de indexação B-Tree para consultas analíticas sub-milissegundo.
 
 ---
 
-## 3. `src/data_ingestion/` — Motor ETL
+## 🔄 Fluxo de Dados End-to-End
 
-### `etl_script.py`
+O pipeline segue um fluxo estruturado de triagem de carga útil, monitoramento de saúde operacional e isolamento reativo de dados corrompidos.
 
-Pipeline ETL em Python responsável por:
-- extrair dados CSV
-- limpar e validar registros
-- aplicar regras de transformação
-- carregar os dados no PostgreSQL
+### Arquitetura do Pipeline (Color Coding)
+<p align="center">
+  <img src="img/pipeline.png" alt="Pipeline de Dados Colorido" width="95%" />
+</p>
 
-### Camada de Confiabilidade
-
-Se dados inválidos forem detectados (ex.: preços mal formatados ou tipos incorretos), o script registra o erro para a camada de monitoramento Sentinel.
-
----
-
-## 4. `src/sentinel_lambda/` — Camada de Inteligência SRE
-
-### `handler.py`
-
-Função AWS Lambda responsável por monitorar a execução do pipeline e automatizar respostas a incidentes.
-
-### Responsabilidades
-
-- Detectar falhas no ETL
-- Gerar logs detalhados
-- Monitorar o fluxo de execução
-- Disparar alertas
-- Auxiliar na análise de causa raiz
-
-### Valor Técnico
-
-Demonstra:
-- Site Reliability Engineering (SRE)
-- Monitoramento serverless
-- Automação de resposta a incidentes
-- Observabilidade cloud-native
+### Dinâmica de Interações e Conectividade (Quadro Branco)
+<p align="center">
+  <img src="img/fluxo.png" alt="Fluxo Quadro Branco" width="75%" />
+</p>
 
 ---
 
-## 5. `src/queries/` — Camada de Governança de Dados
+## 📊 Linha de Execução e Evidências Operacionais (SRE)
 
-### `schema.sql`
+Abaixo está documentado o comportamento cronológico do ecossistema durante uma janela de ingestão de dados, validando o isolamento de falhas e a persistência final no ambiente AWS RDS.
 
-Define a estrutura do banco PostgreSQL, incluindo:
-- tabelas
-- relacionamentos
-- constraints
-- estratégia de índices
+<p align="center">
+  <code>Etapa 1: Leitura CSV</code> ──> <code>Etapa 2: Intercepção TRX002</code> ──> <code>Etapa 3: Gravação SSL</code> ──> <code>Etapa 4: Auditoria Relacional</code>
+</p>
 
-### Por que isso importa?
+| Fase de Execução | Descrição Operacional |
+| :--- | :--- |
+| **1. Triagem e Captura** | O script Python realiza o parsing do arquivo e localiza uma anomalia de tipo crítico no registro `TRX002`. O motor Sentinel captura a falha e isola o payload inválido instantaneamente. |
+| **2. Comunicação Secura** | Utilizando o driver Psycopg 3 protegido por chaves criptográficas SSL, o sistema faz o bypass seguro das proteções de borda para gravar o incidente no cluster. |
+| **3. Conclusão do Pipeline** | A consulta analítica via console comprova a integridade e governança da operação, listando a causa raiz e o nível de severidade. |
 
-Dominar SQL e modelagem de dados é essencial para Engenharia de Dados.
-
-Esta camada demonstra:
-- modelagem relacional
-- governança de esquema
-- integridade de dados
-- design de banco de dados
+<p align="center">
+  <img src="img/concluido.png" alt="Sucesso da Execução End-to-End" width="95%" />
+</p>
 
 ---
-
-# 🔄 Fluxo do DataGuard Sentinel
-
-![Fluxo do DataGuard Sentinel](images/fluxo.png)
-
-A arquitetura representada no quadro branco segue o seguinte fluxo:
-
-1. Os dados nascem no pipeline ETL em Python.
-2. A Lambda Sentinel monitora a saúde da execução.
-3. Dados válidos são persistidos no PostgreSQL (Amazon RDS).
-4. Em caso de falha, a camada Sentinel registra a causa raiz e auxilia na investigação do incidente.
-
-
-
-
-# Resumo de Execução: DataGuard Sentinel AWS
-
-![Select](images/concluido.png)
-
-Esta imagem representa o sucesso da integração "end-to-end" do projeto, unindo infraestrutura como código, desenvolvimento backend e monitoramento de dados.
-
-## O que a imagem demonstra (Visão Técnica)
-
-1.  **Ingestão e Validação (Terminal):**
-    * O script Python (`etl_script.py`) executou a leitura de um arquivo CSV mockado.
-    * O motor do **Sentinel** identificou uma anomalia na transação `TRX002` (valor inválido detectado).
-    * Utilizando o driver **Psycopg 3**, o script estabeleceu uma conexão segura via SSL com o **AWS RDS** e persistiu o incidente.
-
-2.  **Infraestrutura e Conectividade (SQLTools):**
-    * À esquerda, vemos a interface de consulta conectada ao banco de dados provisionado via **Terraform**.
-    * A conexão está validada e ativa, operando com as políticas de segurança (Security Groups) configuradas corretamente na AWS.
-
-3.  **Persistência e Data Quality (Console de Resultados):**
-    * À direita, o resultado do `SELECT` confirma que o incidente foi gravado com sucesso.
-    * Os metadados incluem o `transaction_id`, o tipo de incidente (**InvalidValue**), a severidade (**HIGH**) e o detalhamento técnico do erro.
-
-## Conclusão do Pipeline
-O ciclo completo foi validado:
-- **Infraestrutura:** Provisionada com Terraform.
-- **Segurança:** Acessos e permissões configurados.
-- **Aplicação:** Lógica de negócio e tratamento de erro em Python.
-- **Banco de Dados:** PostgreSQL (RDS) operando como o repositório central de logs de qualidade.
-
----
-*Status: Conectado e Operacional na AWS.*
-
----
-
-## ☁️ Tecnologias Utilizadas
-
-- [Python](https://docs.python.org/3/)
-- [Terraform](https://developer.hashicorp.com/terraform/docs)
-- [AWS Lambda](https://docs.aws.amazon.com/lambda/)
-- [Amazon RDS PostgreSQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html)
-- [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html)
-- [AWS Cloud Infrastructure](https://docs.aws.amazon.com/)
-- [ETL Pipelines](https://aws.amazon.com/what-is/etl/)
-- [SQL](https://www.postgresql.org/docs/)
-- [Serverless Architecture](https://aws.amazon.com/serverless/)
-- [Site Reliability Engineering (SRE)](https://sre.google/)
+<p align="center">
+  <b>Status: Conectado, Mapeado e Operacional na AWS Cloud.</b>
+</p>
